@@ -1,6 +1,6 @@
 String.prototype.levenshteinDistance = function(other) {
-  if (this.length === 0) { return other.length; }
-  if (other.length === 0) { return this.length; }
+  if (this.length === 0) return other.length;
+  if (other.length === 0) return this.length;
 
   let cost;
 
