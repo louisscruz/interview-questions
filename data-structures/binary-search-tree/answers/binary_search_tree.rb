@@ -106,6 +106,13 @@ class BinarySearchTree
     node
   end
 
+  def depth(node=@root)
+    return 0 if node.nil? || node.has_no_children?
+    left_depth = depth(node.left)
+    right_depth = depth(node.right)
+    [left_depth, right_depth].max + 1
+  end
+
   def breadth_first_traversal(node=@root, &prc)
     nodes = [node]
     until nodes.empty?
@@ -133,8 +140,8 @@ class BinarySearchTree
   def post_order(node=@root, &prc)
     return if node.nil?
     post_order(node.left, &prc)
-    prc.call(node)
     post_order(node.right, &prc)
+    prc.call(node)
   end
 end
 
@@ -150,28 +157,32 @@ tree.insert(12)
 
 tree.delete(3)
 
-p 'pre order'
+pre_ordering = [5, 1, 9, 7, 11, 10, 12]
+pre_order_result = []
 tree.pre_order do |el|
-  p el.key
+  pre_order_result << el.key
 end
+puts "pre-order test pass: #{pre_ordering == pre_order_result}"
 
-p 'in order'
+in_ordering = [1, 5, 7, 9, 10, 11, 12]
+in_order_result = []
 tree.in_order do |el|
-  p el.key
+  in_order_result << el.key
 end
+puts "in-order test pass: #{in_ordering == in_order_result}"
 
-p 'post order'
+post_ordering = [1, 7, 10, 12, 11, 9, 5]
+post_order_result = []
 tree.post_order do |el|
-  p el.key
+  post_order_result << el.key
 end
+puts "post-order test pass: #{post_ordering == post_order_result}"
 
-tree.delete(11)
-
-p 'deleted 11'
-tree.in_order do |el|
-  p el.key
-end
-
+bfs_ordering = [5, 1, 9, 7, 11, 10, 12]
+bfs_order_result = []
 tree.breadth_first_traversal do |el|
-  p el.key
+  bfs_order_result << el.key
 end
+puts "breadth_first_traversal test pass: #{bfs_order_result == bfs_order_result}"
+
+puts "depth test pass: #{tree.depth == 3}"
