@@ -1,89 +1,177 @@
 class BinarySearchTree
   class Node
-    attr_accessor :value, :left, :right
+    attr_accessor :key, :left, :right
 
-    def initialize(value)
-      @value = value
-      @parent = nil
+    def initialize(key, parent=nil)
+      @key = key
+      @parent = parent
       @left = nil
       @right = nil
     end
 
-    def insert(new_value)
-      case new_value <=> @value
+    def insert(new_key)
+      case new_key <=> @key
       when -1
         if @left.nil?
-          @left = Node.new(new_value)
+          @left = Node.new(new_key, self)
         else
-          @left.insert(new_value)
+          @left.insert(new_key)
         end
       when 1
         if @right.nil?
-          @right = Node.new(new_value)
+          @right = Node.new(new_key, self)
         else
-          @right.insert(new_value)
+          @right.insert(new_key)
         end
-        # @right.nil? ? @right = Node.new(new_value): @right.insert(new_value)
       end
+    end
+
+    def has_children?
+      @left || @right
     end
 
     def has_no_children?
       @left.nil? && @right.nil?
     end
 
-    def has_children?
-      !@left.nil? || !@right.nil?
+    def delete_from_parent
+      return unless @parent
+      if @key < @parent.key
+        @parent.left = nil
+      else
+        @parent.right = nil
+      end
+    end
+
+    def splice_left
+      @parent.left = @left
+    end
+
+    def splice_right
+      @parent.right = @right
+    end
+
+    def splice_min(min_node)
+      @key = min_node.key
+      min_node.delete_from_parent
     end
   end
 
-  def initialize(root = nil)
+  attr_reader :length, :count
+
+  def initialize(root=nil)
     @root = root
+    @count = @root.nil? ? 0 : 1
   end
 
-  def insert(value)
-    @root.nil? ? @root = Node.new(value) : @root.insert(value)
+  def insert(key)
+    @root.nil? ? @root = Node.new(key) : @root.insert(key)
+    @count += 1
   end
 
-  def delete(value)
-    node = search(value)
-    p node
+  def delete(key, node=@root)
+    node = search(key)
     return unless node
     if node.has_no_children?
-      p 'no children'
-    elsif node.left || node.right
-      p 'one'
+      node.delete_from_parent
+    elsif node.left && node.right
+      node.splice_min(min(node.right))
     else
-      p 'all'
+      node.left ? node.splice_left : node.splice_right
+    end
+    @count -= 1
+  end
+
+  def search(key, node=@root)
+    return nil if node.nil?
+    return node if node.key == key
+    if key < node.key
+      search(key, node.left)
+    else
+      search(key, node.right)
     end
   end
 
-  def search(value, node=@root)
-    return nil if node.nil?
-    return node if node.value == value
-    value < node.value ? search(value, node.left) : search(value, node.right)
+  def min(node=@root)
+    while node.left
+      node = node.left
+    end
+    node
   end
 
-  def min
+  def max(node=@root)
+    while node.right
+      node = node.right
+    end
+    node
   end
 
-  def max
+  def breadth_first_traversal(node=@root, &prc)
+    nodes = [node]
+    until nodes.empty?
+      node = nodes.shift
+      prc.call(node)
+      nodes.push(node.left) if node.left
+      nodes.push(node.right) if node.right
+    end
   end
 
-  def count
+  def pre_order(node=@root, &prc)
+    return if node.nil?
+    prc.call(node)
+    pre_order(node.left, &prc)
+    pre_order(node.right, &prc)
+  end
+
+  def in_order(node=@root, &prc)
+    return if node.nil?
+    in_order(node.left, &prc)
+    prc.call(node)
+    in_order(node.right, &prc)
+  end
+
+  def post_order(node=@root, &prc)
+    return if node.nil?
+    post_order(node.left, &prc)
+    prc.call(node)
+    post_order(node.right, &prc)
   end
 end
 
 tree = BinarySearchTree.new
 tree.insert(5)
-tree.insert(1)
-tree.insert(10)
-tree.insert(0)
 tree.insert(3)
+tree.insert(1)
+tree.insert(9)
 tree.insert(7)
 tree.insert(11)
+tree.insert(10)
+tree.insert(12)
 
-puts tree.search(5).value == 5
-puts tree.search(4) == nil
-puts tree.search(1).value == 1
+tree.delete(3)
 
-tree.delete(1)
+p 'pre order'
+tree.pre_order do |el|
+  p el.key
+end
+
+p 'in order'
+tree.in_order do |el|
+  p el.key
+end
+
+p 'post order'
+tree.post_order do |el|
+  p el.key
+end
+
+tree.delete(11)
+
+p 'deleted 11'
+tree.in_order do |el|
+  p el.key
+end
+
+tree.breadth_first_traversal do |el|
+  p el.key
+end
