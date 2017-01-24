@@ -143,6 +143,35 @@ class BinarySearchTree
     post_order(node.right, &prc)
     prc.call(node)
   end
+
+  private
+
+  def to_vine(node=@root)
+    tail = node
+    rest = tail.right
+    until rest.nil?
+      if rest.left.nil?
+        tail = rest
+        rest = rest.right
+      else
+        temp = rest.left
+        rest.left = temp.right
+        temp.right = rest
+        rest = temp
+        tail.right = temp
+      end
+    end
+  end
+
+  def to_tree(node=@root)
+    leaves = count + 1 - 2 ** Math.log(count + 1, 2)
+  end
+
+  def compress(node, count)
+    count.times do
+
+    end
+  end
 end
 
 tree = BinarySearchTree.new
@@ -186,3 +215,9 @@ end
 puts "breadth_first_traversal test pass: #{bfs_order_result == bfs_order_result}"
 
 puts "depth test pass: #{tree.depth == 3}"
+
+vine = in_ordering
+tree.send(:to_vine)
+puts "vine test pass: #{tree.depth == (tree.count - 2)}"
+
+tree.send(:to_tree)
