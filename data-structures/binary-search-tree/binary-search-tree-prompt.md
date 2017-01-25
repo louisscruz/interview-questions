@@ -5,9 +5,7 @@ A binary search tree is data structure where the each node has two children, whe
 Construct a binary search tree with the following API:
 
 * insert(key)
-  * This should allow for batch insertion as well and balance the tree after insertion.
 * delete(key)
-  * This should allow for batch deletion as well and balance the tree after deletion.
 * search(key)
   * This should return a node with the specified key if one exists, or it should return nil.
 * min(node)
@@ -24,3 +22,5 @@ Construct a binary search tree with the following API:
   * If a node is provided, perform in_order on that sub-tree.
 * post_order(node)
   * If a node is provided, perform post_order on that sub-tree.
+* balance_tree
+  * When called, this method should perform the Day-Stout-Warren algorithm for tree balancing.
