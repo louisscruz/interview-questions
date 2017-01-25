@@ -1,6 +1,8 @@
+require 'byebug'
+
 class BinarySearchTree
   class Node
-    attr_accessor :key, :left, :right
+    attr_accessor :key, :left, :right, :parent
 
     def initialize(key, parent=nil)
       @key = key
@@ -45,10 +47,12 @@ class BinarySearchTree
 
     def splice_left
       @parent.left = @left
+      @left.parent = @parent
     end
 
     def splice_right
       @parent.right = @right
+      @right.parent = @parent
     end
 
     def splice_min(min_node)
@@ -57,7 +61,7 @@ class BinarySearchTree
     end
   end
 
-  attr_reader :length, :count
+  attr_reader :count, :root
 
   def initialize(root=nil)
     @root = root
@@ -144,32 +148,64 @@ class BinarySearchTree
     prc.call(node)
   end
 
-  private
+  def balance_tree
+    self.to_vine
+    self.to_tree
+  end
+
+  protected
 
   def to_vine(node=@root)
-    tail = node
-    rest = tail.right
-    until rest.nil?
-      if rest.left.nil?
-        tail = rest
-        rest = rest.right
+    until node.nil?
+      if node.left.nil?
+        node = node.right
       else
-        temp = rest.left
-        rest.left = temp.right
-        temp.right = rest
-        rest = temp
-        tail.right = temp
+        new_left = node.left
+        if node.parent.nil?
+          @root = new_left
+        else
+          node.parent.right = new_left
+        end
+        new_left.parent = node.parent
+        temp = new_left
+        until temp.right.nil?
+          temp = new_left.right
+        end
+        node.parent = temp
+        temp.right = node
+        node.left = nil
+        node = new_left
       end
     end
   end
 
-  def to_tree(node=@root)
-    leaves = count + 1 - 2 ** Math.log(count + 1, 2)
+  def to_tree
+    size = @count
+    leaves = ((size + 1) - (2 ** Math.log(size + 1, 2))).to_i
+    compress(@root, leaves)
+    size -= leaves
+    while size > 1
+      compress(@root, size / 2)
+      size = size / 2
+    end
   end
 
-  def compress(node, count)
-    count.times do
-
+  def compress(node, size)
+    parent = node
+    size.times do
+      child = parent.right
+      next if parent.nil? || child.nil?
+      @root = child if @root == parent
+      child.parent = parent.parent
+      parent.parent.right = child if parent.parent
+      parent.parent = child
+      if child.left
+        parent.right = child.left
+      else
+        parent.right = nil
+      end
+      child.left = parent
+      parent = child.right
     end
   end
 end
@@ -216,8 +252,10 @@ puts "breadth_first_traversal test pass: #{bfs_order_result == bfs_order_result}
 
 puts "depth test pass: #{tree.depth == 3}"
 
-vine = in_ordering
-tree.send(:to_vine)
-puts "vine test pass: #{tree.depth == (tree.count - 2)}"
-
-tree.send(:to_tree)
+tree.balance_tree
+balanced_in_ordering = [9, 5, 1, 7, 11, 10, 12]
+balanced_result = []
+tree.pre_order do |el|
+  balanced_result << el.key
+end
+puts "balance test pass: #{balanced_in_ordering == balanced_result}"
