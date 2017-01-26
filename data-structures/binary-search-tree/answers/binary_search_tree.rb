@@ -1,5 +1,3 @@
-require 'byebug'
-
 class BinarySearchTree
   class Node
     attr_accessor :key, :left, :right, :parent
