@@ -36,7 +36,7 @@ const spiralMatrix = (arr, cb) => {
     });
   };
 
-  while (currentDirection.remaining) {
+  while (currentDirection.remaining > 0) {
     for (let i = 0; i < currentDirection.remaining; i += 1) {
       updatePosition();
       cb(currentElement());
